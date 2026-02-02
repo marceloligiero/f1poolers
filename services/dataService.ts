@@ -233,8 +233,44 @@ class DataService {
     return this.getAllLeagues();
   }
 
-  async placeBet(): Promise<any> {
-    throw new Error('Betting not yet implemented with database');
+  async placeBet(betData: any): Promise<{ updatedUser: User; updatedEvent: Event }> {
+    const response = await fetch(`${API_URL}/bets`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: betData.userId,
+        eventId: betData.eventId,
+        predictions: betData.predictions.map((d: any) => d.id),
+        teamPredictions: betData.teamPredictions?.map((t: any) => t.id) || [],
+        lockedMultiplier: betData.lockedMultiplier || 1
+      })
+    });
+    
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to place bet');
+    }
+    
+    // Fetch updated user and event
+    const updatedUser = await this.findUserById(betData.userId);
+    const events = await this.getEvents();
+    const updatedEvent = events.find(e => e.id === betData.eventId);
+    
+    if (!updatedUser || !updatedEvent) {
+      throw new Error('Failed to get updated data');
+    }
+    
+    return { updatedUser, updatedEvent };
+  }
+
+  async cancelBet(betId: string): Promise<void> {
+    const response = await fetch(`${API_URL}/bets/${betId}`, {
+      method: 'DELETE'
+    });
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to cancel bet');
+    }
   }
 
   async getCoinPacks(): Promise<CoinPack[]> {

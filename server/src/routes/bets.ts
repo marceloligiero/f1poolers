@@ -29,10 +29,11 @@ router.get('/', (req: Request, res: Response) => {
       id: row[0],
       userId: row[1],
       eventId: row[2],
-      driverId: row[3],
-      amount: row[4],
-      potentialReturn: row[5],
-      placedAt: row[6]
+      predictions: JSON.parse(row[3] || '[]'),
+      teamPredictions: JSON.parse(row[4] || '[]'),
+      lockedMultiplier: row[5] || 1,
+      timestamp: row[6],
+      status: row[7] || 'Active'
     }));
     res.json(result);
   } else {
@@ -63,7 +64,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
 // POST /api/bets - Cria nova aposta
 router.post('/', (req: Request, res: Response) => {
-  const { userId, eventId, driverId, amount, potentialReturn } = req.body;
+  const { userId, eventId, predictions, teamPredictions, lockedMultiplier } = req.body;
   const db = getDb();
   
   // Check user balance
@@ -73,20 +74,24 @@ router.post('/', (req: Request, res: Response) => {
   }
   
   const balance = userResult[0].values[0][0] as number;
-  if (balance < amount) {
+  const betAmount = 10; // Fixed bet value
+  
+  if (balance < betAmount) {
     return res.status(400).json({ error: 'Insufficient balance' });
   }
   
   const id = `bet-${Date.now()}-${randomUUID().slice(0, 8)}`;
   const placedAt = new Date().toISOString();
+  const predictionsJson = JSON.stringify(predictions || []);
+  const teamPredictionsJson = JSON.stringify(teamPredictions || []);
   
   // Create bet
-  db.run(`INSERT INTO bets (id, user_id, event_id, driver_id, amount, potential_return, placed_at) 
-          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [id, userId, eventId, driverId, amount, potentialReturn, placedAt]);
+  db.run(`INSERT INTO bets (id, user_id, event_id, predictions, team_predictions, locked_multiplier, placed_at, status) 
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, userId, eventId, predictionsJson, teamPredictionsJson, lockedMultiplier || 1, placedAt, 'Active']);
   
   // Update user balance
-  db.run('UPDATE users SET balance = balance - ? WHERE id = ?', [amount, userId]);
+  db.run('UPDATE users SET balance = balance - ? WHERE id = ?', [betAmount, userId]);
   
   saveDatabase();
   
@@ -94,10 +99,11 @@ router.post('/', (req: Request, res: Response) => {
     id,
     userId,
     eventId,
-    driverId,
-    amount,
-    potentialReturn,
-    placedAt
+    predictions,
+    teamPredictions,
+    lockedMultiplier: lockedMultiplier || 1,
+    placedAt,
+    status: 'Active'
   });
 });
 

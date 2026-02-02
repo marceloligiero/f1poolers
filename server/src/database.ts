@@ -85,13 +85,13 @@ async function createTables() {
       id TEXT PRIMARY KEY,
       user_id TEXT NOT NULL,
       event_id TEXT NOT NULL,
-      driver_id TEXT NOT NULL,
-      amount INTEGER NOT NULL,
-      potential_return INTEGER NOT NULL,
+      predictions TEXT NOT NULL,
+      team_predictions TEXT,
+      locked_multiplier REAL DEFAULT 1,
       placed_at TEXT NOT NULL,
+      status TEXT DEFAULT 'Active',
       FOREIGN KEY (user_id) REFERENCES users(id),
-      FOREIGN KEY (event_id) REFERENCES events(id),
-      FOREIGN KEY (driver_id) REFERENCES drivers(id)
+      FOREIGN KEY (event_id) REFERENCES events(id)
     );
 
     CREATE TABLE IF NOT EXISTS results (
