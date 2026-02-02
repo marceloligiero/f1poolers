@@ -207,12 +207,31 @@ class DataService {
       const response = await fetch(`${API_URL}/bets`);
       if (!response.ok) return [];
       const bets = await response.json();
-      return bets.map((bet: any) => ({
-        ...bet,
-        timestamp: new Date(bet.timestamp || bet.placedAt),
-        predictions: Array.isArray(bet.predictions) ? bet.predictions : [],
-        teamPredictions: Array.isArray(bet.teamPredictions) ? bet.teamPredictions : []
-      }));
+      const drivers = await this.getAllDrivers();
+      const teams = await this.getAllTeams();
+      
+      return bets.map((bet: any) => {
+        // Convert prediction IDs to Driver objects
+        const predictionIds = Array.isArray(bet.predictions) ? bet.predictions : [];
+        const predictions = predictionIds.map((id: string) => {
+          const driver = drivers.find(d => d.id === id);
+          return driver || { id, name: id, teamName: '' };
+        });
+        
+        // Convert team prediction IDs to Team objects
+        const teamPredictionIds = Array.isArray(bet.teamPredictions) ? bet.teamPredictions : [];
+        const teamPredictions = teamPredictionIds.map((id: string) => {
+          const team = teams.find(t => t.id === id);
+          return team || { id, name: id };
+        });
+        
+        return {
+          ...bet,
+          timestamp: new Date(bet.timestamp || bet.placedAt),
+          predictions,
+          teamPredictions
+        };
+      });
     } catch (error) {
       console.error('Error fetching bets:', error);
       return [];
