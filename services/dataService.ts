@@ -265,6 +265,9 @@ class DataService {
   }
 
   async placeBet(betData: any): Promise<{ updatedUser: User; updatedEvent: Event }> {
+    // Determine if it's a combo bet (has both drivers and teams)
+    const isCombo = betData.predictions.length > 0 && betData.teamPredictions?.length > 0;
+    
     const response = await fetch(`${API_URL}/bets`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -273,7 +276,8 @@ class DataService {
         eventId: betData.eventId,
         predictions: betData.predictions.map((d: any) => d.id),
         teamPredictions: betData.teamPredictions?.map((t: any) => t.id) || [],
-        lockedMultiplier: betData.lockedMultiplier || 1
+        lockedMultiplier: betData.lockedMultiplier || 1,
+        isCombo: isCombo
       })
     });
     

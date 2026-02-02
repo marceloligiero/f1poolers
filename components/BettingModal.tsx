@@ -448,7 +448,11 @@ const BettingModal: React.FC<BettingModalProps> = ({ event, onClose, onBetPlaced
             <div className="flex flex-col w-full sm:w-auto">
                 <div className="flex items-center gap-4 justify-between sm:justify-start">
                     <span className="text-[9px] text-gray-500 uppercase font-black">Entry Fee</span>
-                    <span className="text-yellow-500 font-black text-xs sm:text-sm tracking-tight">{liveEvent.betValue} Fun-Coins</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-yellow-500 font-black text-xs sm:text-sm tracking-tight">{liveEvent.betValue} <span className="text-[8px] text-gray-500">(Single)</span></span>
+                        <span className="text-gray-600">|</span>
+                        <span className="text-green-500 font-black text-xs sm:text-sm tracking-tight">{liveEvent.betValue * 2} <span className="text-[8px] text-gray-500">(Combo)</span></span>
+                    </div>
                 </div>
                 {error && <p className="text-red-500 text-[8px] sm:text-[10px] font-bold uppercase mt-1">{error}</p>}
                 {hasReachedLimit && (

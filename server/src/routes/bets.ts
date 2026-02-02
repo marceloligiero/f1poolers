@@ -64,7 +64,7 @@ router.get('/:id', (req: Request, res: Response) => {
 
 // POST /api/bets - Cria nova aposta
 router.post('/', (req: Request, res: Response) => {
-  const { userId, eventId, predictions, teamPredictions, lockedMultiplier } = req.body;
+  const { userId, eventId, predictions, teamPredictions, lockedMultiplier, isCombo } = req.body;
   const db = getDb();
   
   // Check user balance
@@ -73,11 +73,19 @@ router.post('/', (req: Request, res: Response) => {
     return res.status(404).json({ error: 'User not found' });
   }
   
+  // Get event bet value
+  const eventResult = db.exec('SELECT bet_value FROM events WHERE id = ?', [eventId]);
+  const baseBetValue = eventResult.length > 0 && eventResult[0].values.length > 0 
+    ? (eventResult[0].values[0][0] as number || 10) 
+    : 10;
+  
+  // Double the bet amount if it's a combo bet (both drivers and teams)
+  const betAmount = isCombo ? baseBetValue * 2 : baseBetValue;
+  
   const balance = userResult[0].values[0][0] as number;
-  const betAmount = 10; // Fixed bet value
   
   if (balance < betAmount) {
-    return res.status(400).json({ error: 'Insufficient balance' });
+    return res.status(400).json({ error: `Insufficient balance. Need ${betAmount} Fun-Coins.` });
   }
   
   const id = `bet-${Date.now()}-${randomUUID().slice(0, 8)}`;
