@@ -318,7 +318,16 @@ class DataService {
   }
 
   async getSystemSettings(): Promise<any> {
-    return { theme: 'original' };
+    return { theme: 'original', termsContent: '' };
+  }
+
+  async updateSystemSettings(settings: any): Promise<void> {
+    // For now, just log - settings would be saved to database in full implementation
+    console.log('Updating system settings:', settings);
+  }
+
+  async updateAdSettings(settings: any): Promise<void> {
+    console.log('Updating ad settings:', settings);
   }
 }
 
