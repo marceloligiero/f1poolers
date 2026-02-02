@@ -12,8 +12,8 @@ const MainContent: React.FC = () => {
   const { isAuthenticated, isAdmin } = useAuth();
   const { systemSettings } = useData();
 
-  // Apply F1 Theme if enabled AND (User is on Dashboard OR User is not logged in)
-  const isF1Theme = systemSettings.theme === 'f1' && (!isAuthenticated || view === 'dashboard');
+  // Apply F1 Theme globally when enabled
+  const isF1Theme = systemSettings.theme === 'f1';
 
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isF1Theme ? 'theme-f1 bg-[#15151e]' : 'bg-gray-900'}`}>
