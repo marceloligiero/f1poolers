@@ -84,11 +84,12 @@ router.post('/', (req: Request, res: Response) => {
   const placedAt = new Date().toISOString();
   const predictionsJson = JSON.stringify(predictions || []);
   const teamPredictionsJson = JSON.stringify(teamPredictions || []);
+  const multiplier = lockedMultiplier !== undefined ? lockedMultiplier : 1;
   
   // Create bet
   db.run(`INSERT INTO bets (id, user_id, event_id, predictions, team_predictions, locked_multiplier, placed_at, status) 
           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-    [id, userId, eventId, predictionsJson, teamPredictionsJson, lockedMultiplier || 1, placedAt, 'Active']);
+    [id, userId, eventId, predictionsJson, teamPredictionsJson, multiplier, placedAt, 'Active']);
   
   // Update user balance
   db.run('UPDATE users SET balance = balance - ? WHERE id = ?', [betAmount, userId]);
@@ -99,9 +100,9 @@ router.post('/', (req: Request, res: Response) => {
     id,
     userId,
     eventId,
-    predictions,
-    teamPredictions,
-    lockedMultiplier: lockedMultiplier || 1,
+    predictions: predictions || [],
+    teamPredictions: teamPredictions || [],
+    lockedMultiplier: multiplier,
     placedAt,
     status: 'Active'
   });
