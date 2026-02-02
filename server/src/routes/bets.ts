@@ -94,6 +94,9 @@ router.post('/', (req: Request, res: Response) => {
   // Update user balance
   db.run('UPDATE users SET balance = balance - ? WHERE id = ?', [betAmount, userId]);
   
+  // Update event pool prize
+  db.run('UPDATE events SET pool_prize = pool_prize + ? WHERE id = ?', [betAmount, eventId]);
+  
   saveDatabase();
   
   res.json({

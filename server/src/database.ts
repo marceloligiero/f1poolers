@@ -78,6 +78,8 @@ async function createTables() {
       type TEXT NOT NULL,
       scheduled_time TEXT NOT NULL,
       status TEXT DEFAULT 'upcoming',
+      pool_prize INTEGER DEFAULT 0,
+      bet_value INTEGER DEFAULT 10,
       FOREIGN KEY (round_id) REFERENCES rounds(id)
     );
 

@@ -188,8 +188,8 @@ class DataService {
         type: mapEventType(e.type),
         date: new Date(e.scheduledTime),
         status: mapEventStatus(e.status),
-        betValue: 10,
-        poolPrize: 0
+        betValue: e.betValue || 10,
+        poolPrize: e.poolPrize || 0
       }));
     } catch (error) {
       console.error('Error fetching events:', error);

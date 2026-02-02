@@ -30,7 +30,9 @@ router.get('/', (req: Request, res: Response) => {
       roundId: row[1],
       type: row[2],
       scheduledTime: row[3],
-      status: row[4]
+      status: row[4],
+      poolPrize: row[5] || 0,
+      betValue: row[6] || 10
     }));
     res.json(result);
   } else {
