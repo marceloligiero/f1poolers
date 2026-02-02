@@ -110,9 +110,10 @@ const BettingModal: React.FC<BettingModalProps> = ({ event, onClose, onBetPlaced
   const availableDrivers = drivers.sort((a,b) => a.name.localeCompare(b.name));
   const availableTeams = teams.sort((a,b) => a.name.localeCompare(b.name));
 
-  const isCurrentTabReady = activeTab === 'drivers' 
-    ? driverPredictions.every(p => p !== null) 
-    : teamPredictions.every(p => p !== null);
+  const isDriversReady = driverPredictions.every(p => p !== null);
+  const isTeamsReady = teamPredictions.every(p => p !== null);
+  const isCurrentTabReady = activeTab === 'drivers' ? isDriversReady : isTeamsReady;
+  const isBothReady = isDriversReady && isTeamsReady;
 
   // --- BET LIMIT LOGIC ---
   const MAX_BETS = 4;
@@ -202,15 +203,23 @@ const BettingModal: React.FC<BettingModalProps> = ({ event, onClose, onBetPlaced
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (submitBoth: boolean = false) => {
     if (!user) return;
     setError('');
-    const isDrivers = activeTab === 'drivers';
-    const currentPreds = isDrivers ? driverPredictions : teamPredictions;
     
-    if (currentPreds.some(p => p === null)) {
-        setError(`Please fill all 5 prediction slots.`);
-        return;
+    if (submitBoth) {
+        // Submit both drivers and teams together
+        if (!isDriversReady || !isTeamsReady) {
+            setError('Please fill all 5 slots for both Drivers and Teams.');
+            return;
+        }
+    } else {
+        // Submit only current tab
+        const currentPreds = activeTab === 'drivers' ? driverPredictions : teamPredictions;
+        if (currentPreds.some(p => p === null)) {
+            setError('Please fill all 5 prediction slots.');
+            return;
+        }
     }
 
     if (hasReachedLimit) {
@@ -220,20 +229,39 @@ const BettingModal: React.FC<BettingModalProps> = ({ event, onClose, onBetPlaced
 
     setIsLoading(true);
     try {
-        await placeBet({
-            userId: user.id,
-            eventId: liveEvent.id,
-            predictions: isDrivers ? (currentPreds as Driver[]) : [],
-            teamPredictions: !isDrivers ? (currentPreds as Team[]) : []
-        });
-        onBetPlaced({ 
-            userId: user.id, 
-            eventId: liveEvent.id, 
-            predictions: isDrivers ? (currentPreds as Driver[]) : [],
-            teamPredictions: !isDrivers ? (currentPreds as Team[]) : [],
-            status: 'Active',
-            lockedMultiplier: multiplier
-        });
+        if (submitBoth) {
+            // Submit drivers and teams in a single bet
+            await placeBet({
+                userId: user.id,
+                eventId: liveEvent.id,
+                predictions: driverPredictions as Driver[],
+                teamPredictions: teamPredictions as Team[]
+            });
+            onBetPlaced({ 
+                userId: user.id, 
+                eventId: liveEvent.id, 
+                predictions: driverPredictions as Driver[],
+                teamPredictions: teamPredictions as Team[],
+                status: 'Active',
+                lockedMultiplier: multiplier
+            });
+        } else {
+            const isDrivers = activeTab === 'drivers';
+            await placeBet({
+                userId: user.id,
+                eventId: liveEvent.id,
+                predictions: isDrivers ? (driverPredictions as Driver[]) : [],
+                teamPredictions: !isDrivers ? (teamPredictions as Team[]) : []
+            });
+            onBetPlaced({ 
+                userId: user.id, 
+                eventId: liveEvent.id, 
+                predictions: isDrivers ? (driverPredictions as Driver[]) : [],
+                teamPredictions: !isDrivers ? (teamPredictions as Team[]) : [],
+                status: 'Active',
+                lockedMultiplier: multiplier
+            });
+        }
     } catch (err: any) {
         setError(err.message);
     } finally {
@@ -301,13 +329,19 @@ const BettingModal: React.FC<BettingModalProps> = ({ event, onClose, onBetPlaced
             </div>
         )}
 
-        {/* Selector Tabs */}
+        {/* Selector Tabs with Progress */}
         <div className="flex bg-[#15151e] border-b border-gray-800 flex-shrink-0">
-            <button onClick={() => { setActiveTab('drivers'); setFocusedSlot(null); }} className={`flex-1 py-2 sm:py-3 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'drivers' ? 'text-red-600 bg-[#1f1f27] border-b-2 border-red-600' : 'text-gray-500 hover:text-gray-300'}`}>
+            <button onClick={() => { setActiveTab('drivers'); setFocusedSlot(null); }} className={`flex-1 py-2 sm:py-3 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeTab === 'drivers' ? 'text-red-600 bg-[#1f1f27] border-b-2 border-red-600' : 'text-gray-500 hover:text-gray-300'}`}>
                 Drivers
+                <span className={`text-[8px] px-1.5 py-0.5 rounded ${isDriversReady ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
+                    {driverPredictions.filter(p => p !== null).length}/5
+                </span>
             </button>
-            <button onClick={() => { setActiveTab('teams'); setFocusedSlot(null); }} className={`flex-1 py-2 sm:py-3 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'teams' ? 'text-blue-500 bg-[#1f1f27] border-b-2 border-blue-500' : 'text-gray-500 hover:text-gray-300'}`}>
+            <button onClick={() => { setActiveTab('teams'); setFocusedSlot(null); }} className={`flex-1 py-2 sm:py-3 text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${activeTab === 'teams' ? 'text-blue-500 bg-[#1f1f27] border-b-2 border-blue-500' : 'text-gray-500 hover:text-gray-300'}`}>
                 Teams
+                <span className={`text-[8px] px-1.5 py-0.5 rounded ${isTeamsReady ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-400'}`}>
+                    {teamPredictions.filter(p => p !== null).length}/5
+                </span>
             </button>
         </div>
 
@@ -439,15 +473,26 @@ const BettingModal: React.FC<BettingModalProps> = ({ event, onClose, onBetPlaced
                       <span className="inline-block transform skew-x-12 text-[10px] sm:text-sm">Choose Other Event</span>
                     </button>
                 ) : (
-                    <button 
-                      onClick={handleSubmit}
-                      disabled={!isCurrentTabReady || isLoading}
-                      className="flex-[2] sm:flex-none bg-red-600 text-white font-black py-2 px-6 sm:px-10 rounded-sm uppercase tracking-widest italic transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-red-700 transform -skew-x-12 shadow-lg shadow-red-900/20"
-                    >
-                      <span className="inline-block transform skew-x-12 text-[10px] sm:text-sm">
-                        {isLoading ? 'Wait...' : 'Confirm Prediction'}
-                      </span>
-                    </button>
+                    <div className="flex gap-2 flex-[2]">
+                        <button 
+                          onClick={() => handleSubmit(false)}
+                          disabled={!isCurrentTabReady || isLoading}
+                          className="flex-1 bg-red-600 text-white font-black py-2 px-3 sm:px-6 rounded-sm uppercase tracking-widest italic transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-red-700 transform -skew-x-12 shadow-lg shadow-red-900/20"
+                        >
+                          <span className="inline-block transform skew-x-12 text-[8px] sm:text-xs">
+                            {isLoading ? 'Wait...' : (activeTab === 'drivers' ? 'Drivers Only' : 'Teams Only')}
+                          </span>
+                        </button>
+                        <button 
+                          onClick={() => handleSubmit(true)}
+                          disabled={!isBothReady || isLoading}
+                          className="flex-1 bg-green-600 text-white font-black py-2 px-3 sm:px-6 rounded-sm uppercase tracking-widest italic transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-green-700 transform -skew-x-12 shadow-lg shadow-green-900/20"
+                        >
+                          <span className="inline-block transform skew-x-12 text-[8px] sm:text-xs">
+                            {isLoading ? 'Wait...' : 'Both (Combo)'}
+                          </span>
+                        </button>
+                    </div>
                 )}
             </div>
         </div>
