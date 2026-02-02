@@ -1,0 +1,7 @@
+{
+  "name": "F1™ Poolers",
+  "description": "An F1™ racing betting platform using fun-coins. Users predict the finish order of drivers and teams for points, compete on leaderboards, and engage in social chat. Features time-based betting bonuses and a sleek drag-and-drop interface.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}

@@ -1,0 +1,243 @@
+
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
+
+export type Language = 'en' | 'pt' | 'es';
+
+interface LanguageContextType {
+  language: Language;
+  setLanguage: (lang: Language) => void;
+  t: (key: string) => string;
+}
+
+const translations: Record<Language, Record<string, string>> = {
+  en: {
+    welcome: 'Welcome to the Paddock',
+    login: 'Login',
+    signup: 'Sign Up',
+    howToPlay: 'How to Play & Scoring',
+    username: 'Username',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    age: 'Age',
+    country: 'Country',
+    terms: 'I agree to the Terms and Conditions',
+    raceNow: 'Race Now',
+    dashboard: 'Dashboard',
+    adminPanel: 'Admin Panel',
+    rankings: 'Global Rankings',
+    leagues: 'Leagues',
+    placeBet: 'Place Prediction',
+    bettingClosed: 'Betting Closed',
+    entryFee: 'Entry Fee',
+    prizePool: 'Prize Pool',
+    multiplier: 'Multiplier',
+    confirmBet: 'Confirm Bet',
+    pointsBreakdown: 'Points Breakdown',
+    exactMatch: 'Exact Match',
+    partialMatch: 'Partial Match',
+    howToBet: 'How to Bet',
+    detailedScoring: 'Detailed Scoring',
+    socialLeagues: 'Social & Leagues',
+    acceptTerms: 'Accept Terms & Race!',
+    manualTitle: 'F1™ Poolers: Sporting Regulations',
+    langSelect: 'Choose Language',
+    multiplierTiers: 'The Multiplier System',
+    article1: 'Article 1.0: Point Allocation',
+    article1_1: 'Article 1.1: Constructor Strategy',
+    article1_2: 'Article 1.2: The Grand Jackpot',
+    article2: 'Article 2.0: Timing Multipliers',
+    economyTitle: 'Fun-Coin Economy & Earnings',
+    roundBonus: 'Round Bonus',
+    adRewards: 'Ad-Rewards',
+    storeBundles: 'Store Bundles',
+    jackpotShares: 'Jackpot Shares',
+    chooseStrategy: 'Choose Strategy',
+    theGrid: 'The Grid',
+    finalize: 'Finalize',
+    platinum: 'Platinum',
+    gold: 'Gold',
+    silver: 'Silver',
+    standard: 'Standard',
+    economyDesc: 'Every time a new race weekend is added to the calendar, every active player receives 50 Fun-Coins automatically to ensure the grid stays full.',
+    adRewardsDesc: 'Running low? Visit the "Get Fun Coins" menu in your profile. Watch short sponsorship clips to earn immediate coin injections for your next bet.',
+    storeBundlesDesc: 'For high-rollers looking to join multiple leagues or high-entry events, "Championship Vaults" and "Racer Bundles" are available in the store.',
+    betStep1: 'Choose between Individual Drivers or Constructors.',
+    betStep2: 'Tap a driver/team from the grid then select a prediction slot (P1-P5).',
+    betStep3: 'Hit Confirm Prediction to lock in your position and current multiplier.',
+    multiplierIntro: 'The multiplier system rewards early analysis. The sooner you lock in your prediction before the session start, the higher your final score will be.',
+    multiplierLock: 'The multiplier is permanently locked the moment you click "Confirm Prediction". Changing your prediction after confirmation will result in applying the current multiplier of the new confirmation time.',
+    constructorStrategyDesc: 'Team bets function as a hedge. You earn 50% of the Driver points if any driver from that team finishes in your predicted spot.',
+    jackpotProtocolDesc: 'A "Perfect Prediction" (matching the exact P1-P5 Drivers in order) triggers the Jackpot Protocol. The total accumulated prize pool is split equally among all players who nail the perfect result.',
+    leagueIntro: 'Competing globally is the standard; competing in your own League is where legends are made. Leagues are private or public communities where you race against your inner circle.',
+    privacyProtocol: 'Privacy Protocol: Admins can lock leagues with unique invite codes. Only verified members can enter the simulation.',
+    customTrophies: 'Custom Trophies: League admins can set specific "Physical" or "Digital" prizes (e.g., custom merch or titles) for their season winners.',
+    fullModeration: 'Full Moderation: Admins have the power to suspend or ban members who violate the sporting code of conduct.',
+    paddockChatIntro: 'The Paddock Chat: Real-time telemetry and discussion.',
+    globalRankHighlight: 'Global Rank Highlighting: Top-ranked global players are automatically highlighted in league chats with "High Roller" badges.',
+    realTimeTelemetry: 'Real-time Telemetry: Chat about race results instantly with encrypted league communication.',
+    reactionsDesc: 'Reactions: Like or dislike predictions shared in chat to show your support or rivalry.'
+  },
+  pt: {
+    welcome: 'Bem-vindo ao Paddock',
+    login: 'Entrar',
+    signup: 'Cadastrar',
+    howToPlay: 'Como Jogar e Pontuação',
+    username: 'Usuário',
+    password: 'Senha',
+    confirmPassword: 'Confirmar Senha',
+    age: 'Idade',
+    country: 'País',
+    terms: 'Eu concordo com os Termos e Condições',
+    raceNow: 'Correr Agora',
+    dashboard: 'Painel',
+    adminPanel: 'Painel Admin',
+    rankings: 'Ranking Global',
+    leagues: 'Ligas',
+    placeBet: 'Fazer Palpite',
+    bettingClosed: 'Apostas Encerradas',
+    entryFee: 'Taxa de Entrada',
+    prizePool: 'Prêmio Total',
+    multiplier: 'Multiplicador',
+    confirmBet: 'Confirmar Aposta',
+    pointsBreakdown: 'Distribuição de Pontos',
+    exactMatch: 'Acerto Exato',
+    partialMatch: 'Acerto Parcial',
+    howToBet: 'Como Apostar',
+    detailedScoring: 'Pontuação Detalhada',
+    socialLeagues: 'Social e Ligas',
+    acceptTerms: 'Aceitar Termos e Correr!',
+    manualTitle: 'F1™ Poolers: Regulamento Esportivo',
+    langSelect: 'Escolha o Idioma',
+    multiplierTiers: 'O Sistema de Multiplicadores',
+    article1: 'Artigo 1.0: Alocação de Pontos',
+    article1_1: 'Artigo 1.1: Estratégia de Construtores',
+    article1_2: 'Artigo 1.2: O Grande Jackpot',
+    article2: 'Artigo 2.0: Multiplicadores de Tempo',
+    economyTitle: 'Economia e Ganhos de Fun-Coins',
+    roundBonus: 'Bônus de Rodada',
+    adRewards: 'Recompensas de Anúncios',
+    storeBundles: 'Pacotes da Loja',
+    jackpotShares: 'Cotas do Jackpot',
+    chooseStrategy: 'Escolha a Estratégia',
+    theGrid: 'O Grid',
+    finalize: 'Finalizar',
+    platinum: 'Platina',
+    gold: 'Ouro',
+    silver: 'Prata',
+    standard: 'Padrão',
+    economyDesc: 'Toda vez que um novo fim de semana de corrida é adicionado ao calendário, cada jogador ativo recebe 50 Fun-Coins automaticamente para garantir que o grid continue cheio.',
+    adRewardsDesc: 'Está ficando sem moedas? Visite o menu "Obter Fun Coins" no seu perfil. Assista a pequenos clipes de patrocínio para ganhar moedas imediatas para sua próxima aposta.',
+    storeBundlesDesc: 'Para os grandes apostadores que desejam participar de várias ligas ou eventos de alta entrada, "Cofres de Campeonato" e "Pacotes de Piloto" estão disponíveis na loja.',
+    betStep1: 'Escolha entre Pilotos Individuais ou Construtores.',
+    betStep2: 'Toque em um piloto/equipe do grid e selecione um slot de previsão (P1-P5).',
+    betStep3: 'Clique em Confirmar Previsão para travar sua posição e o multiplicador atual.',
+    multiplierIntro: 'O sistema de multiplicadores recompensa a análise antecipada. Quanto mais cedo você travar seu palpite antes do início da sessão, maior será sua pontuação final.',
+    multiplierLock: 'O multiplicador é travado permanentemente no momento em que você clica em "Confirmar Previsão". Alterar seu palpite após a confirmação resultará na aplicação do multiplicador atual no momento da nova confirmação.',
+    constructorStrategyDesc: 'Apostas em equipe funcionam como uma proteção. Você ganha 50% dos pontos de Piloto se qualquer piloto dessa equipe terminar na posição prevista.',
+    jackpotProtocolDesc: 'Um "Palpite Perfeito" (acertar os pilotos exatos de P1-P5 em ordem) ativa o Protocolo de Jackpot. O prêmio total acumulado é dividido igualmente entre todos os jogadores que acertarem o resultado perfeito.',
+    leagueIntro: 'Competir globalmente é o padrão; competir em sua própria Liga é onde as lendas são feitas. As ligas são comunidades privadas ou públicas onde você corre contra seu círculo interno.',
+    privacyProtocol: 'Protocolo de Privacidade: Os administradores podem trancar as ligas com códigos de convite exclusivos. Apenas membros verificados podem entrar na simulação.',
+    customTrophies: 'Troféus Personalizados: Os administradores da liga podem definir prêmios "Físicos" ou "Digitais" específicos (ex: mercadorias personalizadas ou títulos) para os vencedores da temporada.',
+    fullModeration: 'Moderação Total: Os administradores têm o poder de suspender ou banir membros que violem o código de conduta esportiva.',
+    paddockChatIntro: 'O Chat do Paddock: Telemetria e discussão em tempo real.',
+    globalRankHighlight: 'Destaque de Ranking Global: Os melhores jogadores do ranking global são destacados automaticamente nos chats da liga com emblemas de "High Roller".',
+    realTimeTelemetry: 'Telemetria em Tempo Real: Converse sobre os resultados das corridas instantaneamente com comunicação criptografada da liga.',
+    reactionsDesc: 'Reações: Curta ou descurta palpites compartilhados no chat para mostrar seu apoio ou rivalidade.'
+  },
+  es: {
+    welcome: 'Bienvenido al Paddock',
+    login: 'Iniciar Sesión',
+    signup: 'Registrarse',
+    howToPlay: 'Cómo Jugar y Puntuación',
+    username: 'Usuario',
+    password: 'Contraseña',
+    confirmPassword: 'Confirmar Contraseña',
+    age: 'Edad',
+    country: 'País',
+    terms: 'Acepto los Términos y Condiciones',
+    raceNow: '¡A Correr!',
+    dashboard: 'Tablero',
+    adminPanel: 'Panel Admin',
+    rankings: 'Clasificación Global',
+    leagues: 'Ligas',
+    placeBet: 'Hacer Predicción',
+    bettingClosed: 'Apuestas Cerradas',
+    entryFee: 'Costo de Entrada',
+    prizePool: 'Pozo de Premios',
+    multiplier: 'Multiplicador',
+    confirmBet: 'Confirmar Apuesta',
+    pointsBreakdown: 'Desglose de Puntos',
+    exactMatch: 'Coincidencia Exacta',
+    partialMatch: 'Coincidencia Parcial',
+    howToBet: 'Cómo Apostar',
+    detailedScoring: 'Puntuación Detallada',
+    socialLeagues: 'Social y Ligas',
+    acceptTerms: '¡Aceptar y Correr!',
+    manualTitle: 'F1™ Poolers: Reglamento Deportivo',
+    langSelect: 'Seleccionar Idioma',
+    multiplierTiers: 'Sistema de Multiplicadores',
+    article1: 'Artículo 1.0: Asignación de Puntos',
+    article1_1: 'Artículo 1.1: Estrategia de Constructores',
+    article1_2: 'Artículo 1.2: El Gran Jackpot',
+    article2: 'Artículo 2.0: Multiplicadores de Tiempo',
+    economyTitle: 'Economía y Ganancias de Fun-Coins',
+    roundBonus: 'Bono de Ronda',
+    adRewards: 'Premios por Anuncios',
+    storeBundles: 'Paquetes de Tienda',
+    jackpotShares: 'Cuotas del Jackpot',
+    chooseStrategy: 'Elegir Estrategia',
+    theGrid: 'La Parrilla',
+    finalize: 'Finalizar',
+    platinum: 'Platino',
+    gold: 'Oro',
+    silver: 'Plata',
+    standard: 'Estándar',
+    economyDesc: 'Cada vez que se agrega un nuevo fin de semana de carreras al calendario, cada jugador activo recibe 50 Fun-Coins automáticamente para asegurar que la parrilla se mantenga llena.',
+    adRewardsDesc: '¿Te quedas sin monedas? Visita el menú "Obtener Fun Coins" en tu perfil. Mira breves clips de patrocinio para ganar inyecciones inmediatas de monedas para tu próxima apuesta.',
+    storeBundlesDesc: 'Para los grandes apostadores que buscan unirse a múltiples ligas o eventos de alta entrada, los "Cofres de Campeonato" y "Paquetes de Piloto" están disponibles en la tienda.',
+    betStep1: 'Elige entre Pilotos Individuales o Constructores.',
+    betStep2: 'Toca un piloto/equipo de la parrilla y selecciona un espacio de predicción (P1-P5).',
+    betStep3: 'Pulsa Confirmar Predicción para bloquear tu posición y el multiplicador actual.',
+    multiplierIntro: 'El sistema de multiplicadores premia el análisis temprano. Cuanto antes bloquees tu predicción antes del inicio de la sesión, mayor será tu puntuación final.',
+    multiplierLock: 'El multiplicador se bloquea permanentemente en el momento en que haces clic en "Confirmar Predicción". Cambiar tu predicción después de la confirmación resultará en la aplicación del multiplicador actual del momento de la nueva confirmación.',
+    constructorStrategyDesc: 'Las apuestas por equipo funcionan como una cobertura. Ganas el 50% de los puntos de Piloto si cualquier piloto de ese equipo termina en el lugar previsto.',
+    jackpotProtocolDesc: 'Una "Predicción Perfecta" (acertar los puntos exactos de P1-P5 en orden) activa el Protocolo del Jackpot. El pozo total acumulado se divide equitativamente entre todos los jugadores que logren el resultado perfecto.',
+    leagueIntro: 'Competir globalmente es el estándar; competir en tu propia Liga es donde se forjan las leyendas. Las ligas son comunidades privadas o públicas donde compites contra tu círculo íntimo.',
+    privacyProtocol: 'Protocolo de Privacidad: Los administradores pueden cerrar las ligas con códigos de invitación únicos. Solo los miembros verificados pueden entrar en la simulación.',
+    customTrophies: 'Trofeos Personalizados: Los administradores de la liga pueden establecer premios "Físicos" o "Digitales" específicos (por ejemplo, merchandising personalizado o títulos) para los ganadores de la temporada.',
+    fullModeration: 'Moderación Total: Los administradores tienen el poder de suspender o expulsar a los miembros que violen el código de conducta deportiva.',
+    paddockChatIntro: 'El Chat del Paddock: Telemetría y discusión en tiempo real.',
+    globalRankHighlight: 'Resaltado de Rango Global: Los jugadores con mejor rango global se resaltan automáticamente en los chats de la liga con insignias de "High Roller".',
+    realTimeTelemetry: 'Telemetría en Tiempo Real: Chatea sobre los resultados de las carreras al instante con comunicación cifrada de la liga.',
+    reactionsDesc: 'Reacciones: Da me gusta o no me gusta a las predicciones compartidas en el chat para mostrar tu apoyo o rivalidad.'
+  }
+};
+
+const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+
+export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [language, setLanguageState] = useState<Language>(() => {
+    return (localStorage.getItem('app_lang') as Language) || 'en';
+  });
+
+  const setLanguage = (lang: Language) => {
+    setLanguageState(lang);
+    localStorage.setItem('app_lang', lang);
+  };
+
+  const t = (key: string) => {
+    return translations[language][key] || key;
+  };
+
+  return (
+    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+      {children}
+    </LanguageContext.Provider>
+  );
+};
+
+export const useLanguage = () => {
+  const context = useContext(LanguageContext);
+  if (!context) throw new Error('useLanguage must be used within LanguageProvider');
+  return context;
+};
