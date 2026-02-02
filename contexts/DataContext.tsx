@@ -283,7 +283,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // System
   const updateSystemSettings = async (settings: SystemSettings) => {
       await dataService.updateSystemSettings(settings);
-      fetchData();
+      setSystemSettings(settings);
   };
 
   const value = {
