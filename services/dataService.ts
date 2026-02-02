@@ -203,8 +203,20 @@ class DataService {
 
   // Bets
   async getAllBets(): Promise<any[]> {
-    const response = await fetch(`${API_URL}/bets`);
-    return response.json();
+    try {
+      const response = await fetch(`${API_URL}/bets`);
+      if (!response.ok) return [];
+      const bets = await response.json();
+      return bets.map((bet: any) => ({
+        ...bet,
+        timestamp: new Date(bet.timestamp || bet.placedAt),
+        predictions: Array.isArray(bet.predictions) ? bet.predictions : [],
+        teamPredictions: Array.isArray(bet.teamPredictions) ? bet.teamPredictions : []
+      }));
+    } catch (error) {
+      console.error('Error fetching bets:', error);
+      return [];
+    }
   }
 
   async getResults(): Promise<any[]> {
