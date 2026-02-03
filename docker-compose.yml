@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  f1poolers:
+    build: .
+    container_name: f1poolers
+    restart: unless-stopped
+    ports:
+      - "3080:3000"  # Frontend
+      - "3081:3001"  # API
+    volumes:
+      - f1poolers_data:/app/server  # Persist database
+    environment:
+      - NODE_ENV=production
+
+volumes:
+  f1poolers_data:
