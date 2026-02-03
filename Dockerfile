@@ -22,18 +22,21 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install nginx
+RUN apk add --no-cache nginx
+
+# Copy nginx config
+COPY nginx.conf /etc/nginx/http.d/default.conf
+
 # Copy built frontend
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/dist /var/www/html
 
 # Copy server
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/server/node_modules ./server/node_modules
 
-# Install serve for static files
-RUN npm install -g serve
-
 # Expose ports
-EXPOSE 3000 3001
+EXPOSE 3000
 
 # Start script
 COPY docker-entrypoint.sh /docker-entrypoint.sh

@@ -6,8 +6,7 @@ services:
     container_name: f1poolers
     restart: unless-stopped
     ports:
-      - "3080:3000"  # Frontend
-      - "3081:3001"  # API
+      - "3080:3000"  # Frontend + API via Nginx
     volumes:
       - f1poolers_data:/app/server  # Persist database
     environment:

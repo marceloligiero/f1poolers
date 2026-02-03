@@ -4,6 +4,8 @@
 cd /app/server
 npx tsx src/index.ts &
 
-# Start frontend server
-cd /app
-serve -s dist -l 3000
+# Wait for API to start
+sleep 3
+
+# Start nginx in foreground
+nginx -g 'daemon off;'
