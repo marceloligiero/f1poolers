@@ -51,11 +51,20 @@ router.post('/', (req: Request, res: Response) => {
   const { name, location, country, startDate, endDate, roundNumber } = req.body;
   const db = getDb();
   
-  const id = `round-${roundNumber}-${Date.now()}`;
+  // Get next round number if not provided
+  let nextRoundNumber = roundNumber;
+  if (!nextRoundNumber) {
+    const countResult = db.exec('SELECT MAX(round_number) FROM rounds');
+    nextRoundNumber = (countResult.length > 0 && countResult[0].values[0][0]) 
+      ? (countResult[0].values[0][0] as number) + 1 
+      : 1;
+  }
+  
+  const id = `round-${nextRoundNumber}-${Date.now()}`;
   
   db.run(`INSERT INTO rounds (id, name, location, country, start_date, end_date, round_number) 
           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-    [id, name, location, country, startDate, endDate, roundNumber]);
+    [id, name, location, country, startDate, endDate, nextRoundNumber]);
   
   saveDatabase();
   
